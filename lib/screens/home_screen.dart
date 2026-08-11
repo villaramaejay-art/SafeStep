@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/weather_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_styles.dart';
 import '../widgets/panic_button.dart';
@@ -12,6 +13,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final WeatherService _weatherService = WeatherService();
+  late final Future<SafetyWeather> _weatherFuture =
+      _weatherService.fetchCurrentConditions();
 
   Widget _buildQuickTile(IconData icon, String title, String detail) {
     return Expanded(
@@ -31,6 +35,69 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWeatherCard() {
+    return FutureBuilder<SafetyWeather>(
+      future: _weatherFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final weather = snapshot.data;
+        final hasError = snapshot.hasError;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: AppStyles.cardDecoration.copyWith(
+            color: AppColors.surfaceVariant,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  hasError
+                      ? Icons.cloud_off_rounded
+                      : Icons.cloud_queue_rounded,
+                  color: AppColors.panicPrimary,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Local safety conditions',
+                      style: AppStyles.sectionTitleStyle.copyWith(
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasError
+                          ? 'Weather data is unavailable right now.'
+                          : isLoading
+                              ? 'Getting latest weather...'
+                              : '${weather!.condition}, ${weather.temperature.toStringAsFixed(1)} C, ${weather.precipitation.toStringAsFixed(1)} mm rain',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -84,6 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 18),
+              _buildWeatherCard(),
               const SizedBox(height: 18),
               Row(
                 children: [
