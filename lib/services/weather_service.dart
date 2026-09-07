@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 
 class SafetyWeather {
   const SafetyWeather({
@@ -17,15 +18,18 @@ class SafetyWeather {
 }
 
 class WeatherService {
-  static const double _manilaLatitude = 14.5995;
-  static const double _manilaLongitude = 120.9842;
+  /// Used when the device location is unavailable.
+  static const LatLng manilaFallback = LatLng(14.5995, 120.9842);
 
-  Future<SafetyWeather> fetchCurrentConditions() async {
+  /// Fetches conditions for [at], or for [manilaFallback] when [at] is null.
+  Future<SafetyWeather> fetchCurrentConditions({LatLng? at}) async {
+    final point = at ?? manilaFallback;
+
     final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      'latitude': _manilaLatitude.toString(),
-      'longitude': _manilaLongitude.toString(),
+      'latitude': point.latitude.toString(),
+      'longitude': point.longitude.toString(),
       'current': 'temperature_2m,precipitation,weather_code',
-      'timezone': 'Asia/Manila',
+      'timezone': 'auto',
     });
 
     final response = await http.get(uri);

@@ -1,5 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Live position on the safety map and safe-zone distance checks. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Emergency SMS sent from the handset by another_telephony. -->
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+
+    <!-- Proximity alerts for nearby police and fire stations. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:label="SafeStep"

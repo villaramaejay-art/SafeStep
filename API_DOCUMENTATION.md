@@ -25,14 +25,16 @@ https://api.open-meteo.com/v1/forecast
 **Query Parameters Used:**
 
 ```text
-latitude=14.5995
-longitude=120.9842
+latitude={device_latitude}
+longitude={device_longitude}
 current=temperature_2m,precipitation,weather_code
-timezone=Asia/Manila
+timezone=auto
 ```
 
 **Purpose:**  
 This endpoint retrieves the current temperature, rainfall amount, and weather condition code for the selected coordinates.
+
+The latitude and longitude come from the device's GPS position through `LocationService`. When location permission is denied or unavailable, the app falls back to Manila (`14.5995`, `120.9842`). `timezone=auto` lets the API resolve the time zone from the coordinates instead of assuming `Asia/Manila`.
 
 ### 2. OpenStreetMap Nominatim Search API
 
