@@ -29,7 +29,7 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  static const List<int> _presets = [10, 20, 30, 60];
+  static const List<int> _presets = [1, 10, 20, 30, 60];
 
   TimerSession _session = TimerSession.inactive;
   int _selectedMinutes = 10;
@@ -41,7 +41,16 @@ class _TimerScreenState extends State<TimerScreen> {
   bool get _hasActiveSession => _session.status != TimerSessionStatus.inactive;
   bool get _isWatchingArrival => _session.isWatchingArrival;
 
-  int get _minutesForDisplay => _session.selectedMinutes ?? _selectedMinutes;
+  /// While there's no active session, the user's own preset tap is the
+  /// answer - not whatever duration the last session happened to be started
+  /// with. `TimerSession.selectedMinutes` outlives a cancelled/expired
+  /// session on purpose (so a resumed app can still show "this was a 10
+  /// minute timer"), which meant tapping a different preset chip while
+  /// inactive had no visible effect: this getter kept preferring that old
+  /// value over the fresh tap.
+  int get _minutesForDisplay => _hasActiveSession
+      ? (_session.selectedMinutes ?? _selectedMinutes)
+      : _selectedMinutes;
   int get _totalSeconds => _minutesForDisplay * 60;
 
   Duration get _remaining {
@@ -115,8 +124,13 @@ class _TimerScreenState extends State<TimerScreen> {
 
     setState(() {
       _session = persisted;
-      final minutes = persisted.selectedMinutes;
-      if (minutes != null) _selectedMinutes = minutes;
+      // Only adopt the persisted duration when there's an actual session to
+      // reflect - an inactive one just means "whatever was last used," which
+      // should not override the preset the user is currently choosing.
+      if (persisted.status != TimerSessionStatus.inactive) {
+        final minutes = persisted.selectedMinutes;
+        if (minutes != null) _selectedMinutes = minutes;
+      }
     });
 
     // The app may have been opened after the grace notification already
@@ -148,8 +162,15 @@ class _TimerScreenState extends State<TimerScreen> {
       if (!mounted) return;
       setState(() {
         _session = updated;
-        final minutes = updated.selectedMinutes;
-        if (minutes != null) _selectedMinutes = minutes;
+        // Same reasoning as _bootstrap: a report describing an inactive
+        // session must not stomp on a preset the user just tapped - the
+        // service's own copy of "last duration used" is not more current
+        // than the UI's own in-progress selection once there's nothing
+        // actually running.
+        if (updated.status != TimerSessionStatus.inactive) {
+          final minutes = updated.selectedMinutes;
+          if (minutes != null) _selectedMinutes = minutes;
+        }
       });
 
       if (!wasAwaitingCheckIn &&
