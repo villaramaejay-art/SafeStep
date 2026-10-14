@@ -146,29 +146,21 @@ class _LoginScreenState extends State<LoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 56,
-          height: 56,
-          alignment: Alignment.center,
+          width: 64,
+          height: 64,
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             borderRadius: AppSpacing.large,
-            gradient: const LinearGradient(
-              colors: [AppColors.primarySoft, AppColors.primary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: AppColors.surface,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.28),
+                color: AppColors.primary.withValues(alpha: 0.18),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: const Icon(
-            Icons.shield_rounded,
-            color: Colors.white,
-            size: 28,
-          ),
+          child: Image.asset('assets/branding/safestep_mark.png'),
         ),
         AppSpacing.gapLg,
         const Text('SafeStep', style: AppStyles.displayStyle),
