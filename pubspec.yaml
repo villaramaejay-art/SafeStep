@@ -41,6 +41,8 @@ dependencies:
   supabase_flutter: ^2.17.2
   another_telephony: ^0.4.1
   flutter_local_notifications: ^20.1.0
+  flutter_foreground_task: ^9.2.2
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

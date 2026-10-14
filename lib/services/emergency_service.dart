@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/alert_record.dart';
 import '../models/contact.dart';
 import '../models/profile.dart';
+import 'alert_cooldown_store.dart';
 import 'auth_service.dart';
 import 'contacts_repository.dart';
 import 'geocoding_service.dart';
@@ -282,18 +283,6 @@ class EmergencyService {
   final AuthService _auth;
   final SupabaseClient _client;
 
-  static final Map<AlertReason, DateTime> _lastSentAt = {};
-
-  /// Set once this network has been observed refusing a message for its link
-  /// and accepting the same message without one.
-  ///
-  /// Learned rather than configured: no list of carriers to keep up to date,
-  /// and no assumption about where the user is. It costs one wasted send, once
-  /// per app run, and saves one on every alert after that.
-  static bool _carrierStripsLinks = false;
-
-  static void resetLinkLearning() => _carrierStripsLinks = false;
-
   bool get isSupported => !kIsWeb && Platform.isAndroid;
 
   /// The cooldown rule on its own, so it can be tested without a handset.
@@ -303,11 +292,25 @@ class EmergencyService {
   }
 
   /// True when [reason] fired recently enough that it should not fire again.
+  ///
+  /// Backed by [AlertCooldownStore] rather than a bare static field: the
+  /// Safety Timer can fire this from a background foreground-service isolate
+  /// that never shared memory with the UI isolate, so an in-memory-only
+  /// cooldown would let each isolate send its own alert for the same expiry.
+  /// Callers that rely on this synchronously (e.g. the geofence screen's exit
+  /// check) assume [AlertCooldownStore.hydrate] has already run once this
+  /// isolate - true for both isolates by the time either can reach this code,
+  /// since both call it at startup.
   static bool isCoolingDown(AlertReason reason, {DateTime? now}) {
-    return isWithinCooldown(_lastSentAt[reason], now ?? DateTime.now());
+    return isWithinCooldown(
+      AlertCooldownStore.lastSentAt(reason),
+      now ?? DateTime.now(),
+    );
   }
 
-  static void resetCooldowns() => _lastSentAt.clear();
+  static void resetCooldowns() => AlertCooldownStore.reset();
+
+  static void resetLinkLearning() => AlertCooldownStore.carrierStripsLinks = false;
 
   Future<bool> ensurePermission() async {
     if (!isSupported) return false;
@@ -491,7 +494,7 @@ class EmergencyService {
     // Once this network has been seen to strip links, the linked attempt is a
     // known-failing send standing between the user and help. Skipped from then
     // on, for the life of the process.
-    if (_carrierStripsLinks && canRetryWithoutLink) {
+    if (AlertCooldownStore.carrierStripsLinks && canRetryWithoutLink) {
       message = plainBody;
     }
 
@@ -515,7 +518,7 @@ class EmergencyService {
           // The link was the only difference, so the network refusing one and
           // accepting the other is as clear an answer as this ever gets.
           message = plainBody;
-          _carrierStripsLinks = true;
+          AlertCooldownStore.carrierStripsLinks = true;
         }
         sent = retry;
       }
@@ -527,7 +530,7 @@ class EmergencyService {
       }
     }
 
-    _lastSentAt[reason] = DateTime.now();
+    AlertCooldownStore.recordSent(reason, DateTime.now());
     await _log(
       reason: reason,
       message: message,

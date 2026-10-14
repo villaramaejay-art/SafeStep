@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'screens/app_shell.dart';
 import 'screens/login_screen.dart';
+import 'services/alert_cooldown_store.dart';
+import 'services/background/foreground_service_controller.dart';
 import 'utils/app_colors.dart';
 import 'utils/app_styles.dart';
 import 'utils/app_theme.dart';
@@ -13,6 +15,11 @@ Future<void> main() async {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+
+  // Must happen before any FlutterForegroundTask call, in every isolate that
+  // makes one - this sets up the UI-isolate side of the port the background
+  // task uses to talk back.
+  ForegroundServiceController.initCommunicationPort();
 
   // Set once before the first frame, so the very first paint already matches
   // the device's current setting instead of flashing light and then
@@ -37,6 +44,12 @@ Future<void> main() async {
     );
     return;
   }
+
+  // Before any screen can read EmergencyService.isCoolingDown (a synchronous
+  // call, e.g. from the geofence exit check) - otherwise the very first
+  // check in this isolate would read an empty cache instead of what was
+  // actually persisted.
+  await AlertCooldownStore.hydrate();
 
   runApp(const SafeStepApp());
 }
