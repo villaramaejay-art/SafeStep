@@ -23,13 +23,21 @@ class _AppShellState extends State<AppShell> {
   /// IndexedStack, so switching back is instant and nothing refetches.
   final Set<int> _visited = {0};
 
-  late final List<Widget> _views = [
-    HomeScreen(onNavigate: _select),
-    const ContactsScreen(),
-    const GeofenceScreen(),
-    const TimerScreen(),
-    const HistoryScreen(),
-  ];
+  /// Built fresh on every call rather than cached: a cached list would hand
+  /// IndexedStack the exact same widget instances on every rebuild, and
+  /// Flutter skips rebuilding a child it can see is unchanged - which is
+  /// normally a free win, but it also means a tab already built would never
+  /// pick up a palette change made after it. State is unaffected either way:
+  /// Flutter matches a child to its existing Element by type and slot, not by
+  /// instance, so each screen keeps its own State - a running timer, a live
+  /// GPS subscription - across every rebuild this produces.
+  List<Widget> _buildViews() => [
+        HomeScreen(onNavigate: _select),
+        const ContactsScreen(),
+        const GeofenceScreen(),
+        const TimerScreen(),
+        const HistoryScreen(),
+      ];
 
   void _select(int index) {
     if (index == _index) return;
@@ -41,12 +49,14 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final views = _buildViews();
+
     return Scaffold(
       body: IndexedStack(
         index: _index,
         children: [
-          for (var i = 0; i < _views.length; i++)
-            if (_visited.contains(i)) _views[i] else const SizedBox.shrink(),
+          for (var i = 0; i < views.length; i++)
+            if (_visited.contains(i)) views[i] else const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

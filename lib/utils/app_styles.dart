@@ -8,66 +8,69 @@ class AppStyles {
   const AppStyles._();
 
   // --- Type scale -----------------------------------------------------------
+  //
+  // Getters rather than consts: each reads AppColors fresh on every build, so
+  // the whole type scale follows the active light/dark palette.
 
-  static const TextStyle displayStyle = TextStyle(
-    fontSize: 26,
-    fontWeight: FontWeight.w800,
-    letterSpacing: -0.6,
-    height: 1.2,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle get displayStyle => TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.6,
+        height: 1.2,
+        color: AppColors.textPrimary,
+      );
 
-  static const TextStyle titleStyle = TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.4,
-    height: 1.25,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle get titleStyle => TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        height: 1.25,
+        color: AppColors.textPrimary,
+      );
 
-  static const TextStyle sectionTitleStyle = TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.2,
-    height: 1.3,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle get sectionTitleStyle => TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.2,
+        height: 1.3,
+        color: AppColors.textPrimary,
+      );
 
-  static const TextStyle bodyStyle = TextStyle(
-    fontSize: 15,
-    fontWeight: FontWeight.w400,
-    height: 1.45,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle get bodyStyle => TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: AppColors.textPrimary,
+      );
 
-  static const TextStyle bodyMutedStyle = TextStyle(
-    fontSize: 14.5,
-    fontWeight: FontWeight.w400,
-    height: 1.45,
-    color: AppColors.textSecondary,
-  );
+  static TextStyle get bodyMutedStyle => TextStyle(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: AppColors.textSecondary,
+      );
 
-  static const TextStyle labelStyle = TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0.2,
-    color: AppColors.textPrimary,
-  );
+  static TextStyle get labelStyle => TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+        color: AppColors.textPrimary,
+      );
 
-  static const TextStyle captionStyle = TextStyle(
-    fontSize: 12.5,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-    color: AppColors.textSecondary,
-  );
+  static TextStyle get captionStyle => TextStyle(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w500,
+        height: 1.4,
+        color: AppColors.textSecondary,
+      );
 
   /// Small all-caps label above a group of controls.
-  static const TextStyle overlineStyle = TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w800,
-    letterSpacing: 0.9,
-    color: AppColors.textTertiary,
-  );
+  static TextStyle get overlineStyle => TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.9,
+        color: AppColors.textTertiary,
+      );
 
   // --- Surfaces -------------------------------------------------------------
 

@@ -5,6 +5,7 @@ import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_styles.dart';
 import '../utils/text_format.dart';
+import '../widgets/staggered_fade_in.dart';
 import '../widgets/status_view.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -326,7 +327,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                   title: Text('Edit'),
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
                   dense: true,
@@ -392,7 +393,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
         separatorBuilder: (_, __) => AppSpacing.gapMd,
         itemBuilder: (context, index) {
           if (index < _contacts.length) {
-            return _buildContactCard(_contacts[index]);
+            return StaggeredFadeIn(
+              index: index,
+              child: _buildContactCard(_contacts[index]),
+            );
           }
           return _buildBackupPrompt();
         },
@@ -413,7 +417,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.group_add_rounded,
             size: 20,
             color: AppColors.warning,
@@ -637,7 +641,7 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
                   },
                 ),
                 AppSpacing.gapXl,
-                const Text('PRIORITY', style: AppStyles.overlineStyle),
+                Text('PRIORITY', style: AppStyles.overlineStyle),
                 AppSpacing.gapSm,
                 SizedBox(
                   width: double.infinity,

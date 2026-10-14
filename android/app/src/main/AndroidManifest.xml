@@ -9,6 +9,16 @@
     <!-- Proximity alerts for nearby police and fire stations. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- Safety Timer foreground service: keeps the countdown and the arrival
+         check running while the app is backgrounded or the screen is locked. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <!-- Used only as a last-resort nudge to relaunch the foreground service if
+         an OEM task-killer takes it out near the deadline - see timer_session
+         docs. Scheduling exact alarms is a user-revocable permission on
+         Android 12+; the app must never claim exact timing when it's off. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
     <application
         android:label="SafeStep"
         android:name="${applicationName}"
@@ -40,6 +50,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Warning: Do not change service name (flutter_foreground_task). -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

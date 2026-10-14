@@ -64,7 +64,7 @@ AlertRecord record({
 Future<void> pump(WidgetTester tester, AlertsRepository repository) async {
   await tester.pumpWidget(
     MaterialApp(
-      theme: AppTheme.light(),
+      theme: AppTheme.build(),
       home: HistoryScreen(repository: repository),
     ),
   );

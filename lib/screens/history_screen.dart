@@ -8,6 +8,7 @@ import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_styles.dart';
 import '../utils/text_format.dart';
+import '../widgets/staggered_fade_in.dart';
 import '../widgets/status_view.dart';
 
 /// The record of every SMS the app has sent for this account.
@@ -275,7 +276,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     if (_alerts.isEmpty) {
-      return const StatusView(
+      return StatusView(
         icon: Icons.history_rounded,
         title: 'No alerts yet',
         message: 'Every SMS SafeStep sends - a panic alert, an expired timer, '
@@ -292,7 +293,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       separatorBuilder: (_, __) => AppSpacing.gapMd,
       itemBuilder: (context, index) {
         if (index == 0) return _buildSummary();
-        return _buildAlertCard(_alerts[index - 1]);
+        return StaggeredFadeIn(
+          index: index - 1,
+          child: _buildAlertCard(_alerts[index - 1]),
+        );
       },
     );
   }
@@ -388,7 +392,7 @@ class _MessageSheet extends StatelessWidget {
               style: AppStyles.captionStyle,
             ),
             AppSpacing.gapLg,
-            const Text('MESSAGE SENT', style: AppStyles.overlineStyle),
+            Text('MESSAGE SENT', style: AppStyles.overlineStyle),
             AppSpacing.gapSm,
             Container(
               width: double.infinity,

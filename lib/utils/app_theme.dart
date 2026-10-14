@@ -8,22 +8,30 @@ import 'app_styles.dart';
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData light() {
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
+  /// Builds the theme for whichever mode [AppColors] currently holds. Called
+  /// again every time the OS brightness flips, so there is one source of
+  /// truth for "what mode are we in" rather than a separate light()/dark()
+  /// pair that could drift out of sync with it.
+  static ThemeData build() {
+    final brightness = AppColors.brightness;
+    final base = ThemeData(useMaterial3: true, brightness: brightness);
+
+    final colorScheme = ColorScheme(
+      brightness: brightness,
+      primary: AppColors.primary,
+      onPrimary: Colors.white,
+      secondary: AppColors.primarySoft,
+      onSecondary: Colors.white,
+      surface: AppColors.surface,
+      onSurface: AppColors.textPrimary,
+      error: AppColors.danger,
+      onError: Colors.white,
+      outline: AppColors.border,
+    );
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        secondary: AppColors.primarySoft,
-        onSecondary: Colors.white,
-        surface: AppColors.surface,
-        onSurface: AppColors.textPrimary,
-        error: AppColors.danger,
-        onError: Colors.white,
-        outline: AppColors.border,
-      ),
+      colorScheme: colorScheme,
 
       textTheme: base.textTheme.copyWith(
         headlineMedium: AppStyles.displayStyle,
@@ -35,7 +43,7 @@ class AppTheme {
         labelLarge: AppStyles.labelStyle,
       ),
 
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
@@ -45,7 +53,7 @@ class AppTheme {
         titleTextStyle: AppStyles.titleStyle,
       ),
 
-      dividerTheme: const DividerThemeData(
+      dividerTheme: DividerThemeData(
         color: AppColors.border,
         thickness: 1,
         space: 1,
@@ -58,14 +66,14 @@ class AppTheme {
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.lg,
         ),
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
-        floatingLabelStyle: const TextStyle(
+        labelStyle: TextStyle(color: AppColors.textSecondary),
+        floatingLabelStyle: TextStyle(
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
         ),
-        hintStyle: const TextStyle(color: AppColors.textTertiary),
+        hintStyle: TextStyle(color: AppColors.textTertiary),
         helperStyle: AppStyles.captionStyle,
-        errorStyle: const TextStyle(
+        errorStyle: TextStyle(
           color: AppColors.danger,
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
@@ -73,23 +81,23 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.medium,
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.medium,
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.medium,
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.6),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.medium,
-          borderSide: const BorderSide(color: AppColors.danger),
+          borderSide: BorderSide(color: AppColors.danger),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.medium,
-          borderSide: const BorderSide(color: AppColors.danger, width: 1.6),
+          borderSide: BorderSide(color: AppColors.danger, width: 1.6),
         ),
       ),
 
@@ -126,7 +134,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size(0, 46),
-          side: const BorderSide(color: AppColors.borderStrong),
+          side: BorderSide(color: AppColors.borderStrong),
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           shape: RoundedRectangleBorder(borderRadius: AppSpacing.medium),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -148,8 +156,8 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surface,
         selectedColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.border),
-        labelStyle: const TextStyle(
+        side: BorderSide(color: AppColors.border),
+        labelStyle: TextStyle(
           fontSize: 13.5,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -203,7 +211,7 @@ class AppTheme {
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.textPrimary,
+        backgroundColor: AppColors.inverseSurface,
         contentTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 14,
@@ -230,7 +238,7 @@ class AppTheme {
           textStyle: const WidgetStatePropertyAll(
             TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
           ),
-          side: const WidgetStatePropertyAll(
+          side: WidgetStatePropertyAll(
             BorderSide(color: AppColors.border),
           ),
           shape: WidgetStatePropertyAll(
@@ -247,14 +255,14 @@ class AppTheme {
         textStyle: AppStyles.bodyStyle,
       ),
 
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
+      progressIndicatorTheme: ProgressIndicatorThemeData(
         color: AppColors.primary,
         circularTrackColor: AppColors.border,
       ),
 
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: AppColors.textPrimary,
+          color: AppColors.inverseSurface,
           borderRadius: AppSpacing.small,
         ),
         textStyle: const TextStyle(color: Colors.white, fontSize: 12),

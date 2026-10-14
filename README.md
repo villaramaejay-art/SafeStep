@@ -10,6 +10,8 @@ SafeStep is a Flutter safety companion app prototype. It includes emergency cont
 - Emergency contacts screen
 - Safety timer with start, pause, resume, reset, and completion alert
 - The safety timer stops itself once you reach a safe space, so arriving is the check-in
+- The safety timer runs in an Android foreground service, so it keeps counting down, watching for arrival, and can still send the alert with the app closed or the screen locked
+- A Home screen status card shows what is actually armed right now - the timer's state, whether the background service is running, location permission, and the battery-optimization exemption - rather than a single reassuring badge
 - Interactive geofencing map using OpenStreetMap tiles
 - Live GPS tracking with an accuracy circle and inside/outside safe-zone status
 - Tap-to-pin mode for creating a safe space anywhere on the map
@@ -44,6 +46,8 @@ See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for endpoint details, sample JS
 - `latlong2` - coordinates and distance math
 - `geolocator` - device GPS position and permissions
 - `another_telephony` - sends the emergency SMS on Android
+- `flutter_foreground_task` - the Android foreground service the Safety Timer runs in
+- `shared_preferences` - persists the timer's deadline and the alert cooldown across restarts
 - `http`
 - `cupertino_icons`
 
@@ -112,16 +116,45 @@ state - live GPS tracking keeps running, for example.
 
 ## Known limits
 
-The timer and the geofence watcher only run while the app is in the foreground.
-If the app is closed or the OS suspends it, neither will fire. Making them
-survive that needs a server-side deadline for the timer and a background
-location service for the geofence.
+**The Safety Timer** runs inside an Android foreground service
+(`lib/services/background/safety_task_handler.dart`), with its deadline and
+status persisted to disk (`lib/services/timer_session_repository.dart`), so
+it keeps counting down - and can still send the alert - with the app closed
+or the screen locked. What this does *not* mean:
+
+- **Force-stopping the app** (Settings, or swiping it away from a task
+  killer some OEMs ship) cancels the service and any pending alarm. This is
+  Android's own platform behavior, not something an app can override.
+- **Exact timing is best-effort**, not guaranteed. The countdown's own tick
+  is exempt from Doze/App Standby while the service is alive, but a reading
+  on a real device under screen-lock showed it slow to roughly once every
+  1.5-2 seconds rather than exactly one - still closes in on the deadline,
+  just not to the millisecond. If the service is nonetheless killed, the
+  plugin's own restart alarm relaunches it within 1-5 seconds and the
+  handler recovers the persisted deadline from where it left off.
+- **Aggressive OEM battery management** (Samsung's One UI, verified on this
+  project's own test device, and others like it) can still kill a correctly
+  declared foreground service in ways stock Android's Doze would not. The
+  Home screen's monitoring status card shows the battery-optimization
+  exemption state and links to the system setting; asking the user to grant
+  it is the mitigation, not a guarantee that nothing can stop the service.
+- **Exact alarms require a permission the user can revoke** (Android 12+).
+  The app never claims exact timing when it has been turned off.
+
+**The geofence watcher** ("left a safe space" notices) still only runs while
+the app is in the foreground - it has the same background-survival gap the
+timer used to have, and needs its own pass with the native Geofencing API
+rather than the continuous GPS stream it polls today.
 
 ## Permissions
 
 Live location requires platform permissions, already declared in:
 
-- `android/app/src/main/AndroidManifest.xml` - `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `SEND_SMS`
+- `android/app/src/main/AndroidManifest.xml` - `ACCESS_FINE_LOCATION`,
+  `ACCESS_COARSE_LOCATION`, `SEND_SMS`, `FOREGROUND_SERVICE`,
+  `FOREGROUND_SERVICE_LOCATION` (the Safety Timer's background service),
+  `SCHEDULE_EXACT_ALARM` and `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (both
+  user-revocable; see "Known limits" above)
 - `ios/Runner/Info.plist` - `NSLocationWhenInUseUsageDescription`
 
 On web, the browser prompts for location and requires `https` or `localhost`.
@@ -177,7 +210,12 @@ Important files:
 - `lib/screens/app_shell.dart` - the four tabs behind one persistent bottom bar
 - `lib/screens/home_screen.dart` - dashboard, setup summary and panic button
 - `lib/screens/geofence_screen.dart` - map, live location, safe spaces, location search
-- `lib/screens/timer_screen.dart` - safety timer
+- `lib/screens/timer_screen.dart` - safety timer view and remote control
+- `lib/services/background/safety_task_handler.dart` - the safety timer's actual countdown, arrival watch, and alert dispatch, running in the foreground service
+- `lib/services/background/foreground_service_controller.dart` - starts/stops/configures that service
+- `lib/services/timer_session_repository.dart` - persists the timer's deadline and status across restarts
+- `lib/services/alert_cooldown_store.dart` - persisted per-reason alert cooldown, shared across the UI and background isolates
+- `lib/widgets/monitoring_status_card.dart` - the Home screen's "what is actually armed right now" status card
 - `lib/screens/history_screen.dart` - alert history and the message that was sent
 - `lib/services/weather_service.dart` - Open-Meteo API integration
 - `lib/services/geocoding_service.dart` - Nominatim API integration
