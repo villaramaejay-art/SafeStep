@@ -1,11 +1,11 @@
 {
-    "name": "safe_step",
-    "short_name": "safe_step",
+    "name": "SafeStep",
+    "short_name": "SafeStep",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#2563EB",
+    "description": "Emergency contacts, panic alerts, safe-space geofencing and a safety timer.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

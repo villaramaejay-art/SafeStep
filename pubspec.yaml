@@ -52,6 +52,23 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# Generates the Android/iOS/web launcher icons from the SafeStep brand mark.
+# Re-run `dart run flutter_launcher_icons` whenever assets/branding/safestep_mark.png changes.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/branding/safestep_mark.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/branding/safestep_mark.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/branding/safestep_mark.png"
+    background_color: "#FFFFFF"
+    theme_color: "#2563EB"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -63,6 +80,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/branding/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
