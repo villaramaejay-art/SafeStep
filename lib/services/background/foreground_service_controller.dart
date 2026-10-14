@@ -44,8 +44,21 @@ class ForegroundServiceController {
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
         eventAction: ForegroundTaskEventAction.repeat(1000),
-        autoRunOnBoot: false,
-        autoRunOnMyPackageReplaced: false,
+        // Both read the same persisted TimerSession on the way back up
+        // (see SafetyTaskHandler.onStart), so a timer that was running when
+        // the phone rebooted or the app was updated mid-countdown picks up
+        // exactly where it left off instead of silently going dark.
+        autoRunOnBoot: true,
+        autoRunOnMyPackageReplaced: true,
+        // The plugin's own restart alarm (ForegroundService.onDestroy /
+        // onTaskRemoved, via RestartReceiver) is what stands in for a
+        // hand-rolled AlarmManager backup here: if an OEM task-killer or the
+        // OS takes the service out while a timer is still active, it is
+        // scheduled to relaunch within 1-5 seconds, landing back in the same
+        // onStart recovery path. allowAutoRestart defaults to true; set here
+        // explicitly so that guarantee is visible at the call site rather
+        // than resting on an unstated default.
+        allowAutoRestart: true,
         allowWakeLock: true,
         allowWifiLock: false,
       ),

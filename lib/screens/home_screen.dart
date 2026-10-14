@@ -13,6 +13,7 @@ import '../utils/app_spacing.dart';
 import '../utils/app_styles.dart';
 import '../utils/text_format.dart';
 import '../widgets/alert_countdown_dialog.dart';
+import '../widgets/monitoring_status_card.dart';
 import '../widgets/panic_button.dart';
 
 /// Weather plus where it was measured, so the card can say which was used.
@@ -749,6 +750,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                AppSpacing.gapLg,
+                const MonitoringStatusCard(),
                 AppSpacing.gapLg,
                 _buildWeatherCard(),
               ],
