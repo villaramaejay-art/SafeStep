@@ -334,7 +334,7 @@ class _TimerScreenState extends State<TimerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Dead Man's Switch",
                   style: AppStyles.sectionTitleStyle,
                 ),
@@ -417,12 +417,12 @@ class _TimerScreenState extends State<TimerScreen> {
                     child: Text(
                       _timerText,
                       maxLines: 1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 44,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -1,
                         color: AppColors.textPrimary,
-                        fontFeatures: [FontFeature.tabularFigures()],
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -550,7 +550,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 ),
               ),
               AppSpacing.gapXl,
-              const Text('CHECK-IN AFTER', style: AppStyles.overlineStyle),
+              Text('CHECK-IN AFTER', style: AppStyles.overlineStyle),
               AppSpacing.gapMd,
               _buildPresets(),
             ],

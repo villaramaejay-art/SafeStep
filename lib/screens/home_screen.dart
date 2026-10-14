@@ -281,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: 48,
           height: 48,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [AppColors.primarySoft, AppColors.primary],
@@ -352,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: AppColors.surface,
                   borderRadius: AppSpacing.medium,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.notifications_active_rounded,
                   color: AppColors.danger,
                   size: 20,
@@ -421,6 +421,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Icon and tone for the condition word the weather service returns, so the
+  /// card reads at a glance instead of making the user parse the label.
+  (IconData, Color) _weatherVisual(String condition) {
+    switch (condition) {
+      case 'Clear':
+        return (Icons.wb_sunny_rounded, AppColors.warning);
+      case 'Foggy':
+        return (Icons.cloud_queue_rounded, AppColors.textTertiary);
+      case 'Rain nearby':
+      case 'Rain showers':
+        return (Icons.umbrella_rounded, AppColors.primary);
+      case 'Snow':
+        return (Icons.ac_unit_rounded, AppColors.primary);
+      case 'Storm risk':
+        return (Icons.thunderstorm_rounded, AppColors.danger);
+      case 'Cloudy':
+      default:
+        return (Icons.wb_cloudy_rounded, AppColors.primary);
+    }
+  }
+
   Widget _buildWeatherCard() {
     return FutureBuilder<_WeatherReading>(
       future: _weatherFuture,
@@ -440,6 +461,10 @@ class _HomeScreenState extends State<HomeScreen> {
               '${weather.precipitation.toStringAsFixed(1)} mm rain';
         }
 
+        final (weatherIcon, weatherTone) = hasError || reading == null
+            ? (Icons.cloud_off_rounded, AppColors.primary)
+            : _weatherVisual(reading.weather.condition);
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -450,12 +475,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 46,
                 height: 46,
                 alignment: Alignment.center,
-                decoration: AppStyles.iconTileDecoration(),
-                child: Icon(
-                  hasError ? Icons.cloud_off_rounded : Icons.wb_cloudy_rounded,
-                  color: AppColors.primary,
-                  size: 23,
-                ),
+                decoration: AppStyles.iconTileDecoration(color: weatherTone),
+                child: Icon(weatherIcon, color: weatherTone, size: 23),
               ),
               AppSpacing.hGapMd,
               Expanded(
@@ -704,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildPanicHero(),
                 AppSpacing.gapXxl,
 
-                const Text('YOUR SETUP', style: AppStyles.overlineStyle),
+                Text('YOUR SETUP', style: AppStyles.overlineStyle),
                 AppSpacing.gapMd,
                 IntrinsicHeight(
                   child: Row(

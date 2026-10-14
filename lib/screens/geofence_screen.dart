@@ -522,6 +522,7 @@ class _GeofenceScreenState extends State<GeofenceScreen> {
       context: context,
       builder: (_) => _AddSafeSpaceDialog(
         geocodingService: _geocodingService,
+        locationService: _locationService,
         validateName: _safeSpaceNameError,
       ),
     );
@@ -881,7 +882,7 @@ class _GeofenceScreenState extends State<GeofenceScreen> {
               point: selectedSpace.point,
               width: 44,
               height: 44,
-              child: const Icon(
+              child: Icon(
                 Icons.location_on_rounded,
                 color: AppColors.primary,
                 size: 40,
@@ -953,7 +954,7 @@ class _GeofenceScreenState extends State<GeofenceScreen> {
                 decoration: AppStyles.pillDecoration(AppColors.primary),
                 child: Text(
                   SafeSpace.formatRadius(_draftRadius),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -971,8 +972,8 @@ class _GeofenceScreenState extends State<GeofenceScreen> {
                       _confirmRemoveSelected();
                   }
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
                     value: 'rename',
                     child: Row(
                       children: [
@@ -991,7 +992,7 @@ class _GeofenceScreenState extends State<GeofenceScreen> {
                           size: 18,
                           color: AppColors.danger,
                         ),
-                        SizedBox(width: AppSpacing.md),
+                        const SizedBox(width: AppSpacing.md),
                         Text(
                           'Remove',
                           style: TextStyle(color: AppColors.danger),
@@ -1238,7 +1239,7 @@ class _PinSafeSpaceDialogState extends State<_PinSafeSpaceDialog> {
               decoration: AppStyles.sunkenDecoration,
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.push_pin_rounded,
                     size: 16,
                     color: AppColors.primary,
@@ -1270,7 +1271,7 @@ class _PinSafeSpaceDialogState extends State<_PinSafeSpaceDialog> {
             AppSpacing.gapXl,
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text('RADIUS', style: AppStyles.overlineStyle),
                 ),
                 Text(
@@ -1307,10 +1308,12 @@ class _PinSafeSpaceDialogState extends State<_PinSafeSpaceDialog> {
 class _AddSafeSpaceDialog extends StatefulWidget {
   const _AddSafeSpaceDialog({
     required this.geocodingService,
+    required this.locationService,
     required this.validateName,
   });
 
   final GeocodingService geocodingService;
+  final LocationService locationService;
   final NameValidator validateName;
 
   @override
@@ -1323,6 +1326,7 @@ class _AddSafeSpaceDialogState extends State<_AddSafeSpaceDialog> {
 
   double _radius = SafeSpace.defaultRadiusKm;
   bool _isSearching = false;
+  bool _isLocatingMe = false;
   String? _searchError;
   LocationSearchResult? _selectedResult;
   List<LocationSearchResult> _results = [];
@@ -1332,6 +1336,61 @@ class _AddSafeSpaceDialogState extends State<_AddSafeSpaceDialog> {
     _nameController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Skips the search entirely: the user is standing where the safe space
+  /// should be, so the live GPS fix is the location - no address to type or
+  /// name to guess at. This is the fast path for the very first safe space,
+  /// where the obvious answer is "here."
+  Future<void> _useCurrentLocation() async {
+    setState(() {
+      _isLocatingMe = true;
+      _searchError = null;
+      _selectedResult = null;
+      _results = [];
+    });
+
+    try {
+      final fix = await widget.locationService.getCurrentFix();
+      if (!mounted) return;
+
+      final here = LocationSearchResult(
+        name: 'My current location',
+        address: '${fix.point.latitude.toStringAsFixed(5)}, '
+            '${fix.point.longitude.toStringAsFixed(5)}',
+        point: fix.point,
+      );
+
+      setState(() {
+        _results = [here];
+        _selectedResult = here;
+      });
+
+      // Non-fatal and non-blocking: a street name reads better in the list
+      // than bare coordinates, but the pin is already usable without it.
+      final place = await widget.geocodingService.describePlace(
+        fix.point,
+        timeout: const Duration(seconds: 4),
+      );
+
+      if (!mounted || place == null || _selectedResult != here) return;
+
+      final upgraded = LocationSearchResult(
+        name: here.name,
+        address: place,
+        point: here.point,
+      );
+
+      setState(() {
+        _results = [upgraded];
+        _selectedResult = upgraded;
+      });
+    } on LocationException catch (error) {
+      if (!mounted) return;
+      setState(() => _searchError = error.message);
+    } finally {
+      if (mounted) setState(() => _isLocatingMe = false);
+    }
   }
 
   Future<void> _searchPlaces() async {
@@ -1490,6 +1549,38 @@ class _AddSafeSpaceDialogState extends State<_AddSafeSpaceDialog> {
                 ),
               ),
               AppSpacing.gapLg,
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLocatingMe ? null : _useCurrentLocation,
+                  icon: _isLocatingMe
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.my_location_rounded, size: 18),
+                  label: Text(
+                    _isLocatingMe
+                        ? 'Finding you...'
+                        : 'Use my current location',
+                  ),
+                ),
+              ),
+              AppSpacing.gapLg,
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                    ),
+                    child: Text('OR SEARCH', style: AppStyles.overlineStyle),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              AppSpacing.gapLg,
               Row(
                 children: [
                   Expanded(
@@ -1552,7 +1643,7 @@ class _AddSafeSpaceDialogState extends State<_AddSafeSpaceDialog> {
               AppSpacing.gapXl,
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text('RADIUS', style: AppStyles.overlineStyle),
                   ),
                   Text(

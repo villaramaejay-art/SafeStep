@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_spacing.dart';
 import '../utils/app_styles.dart';
@@ -56,13 +57,19 @@ class _AlertCountdownDialogState extends State<AlertCountdownDialog> {
   @override
   void initState() {
     super.initState();
+    // Felt, not just seen: a dialog racing toward an SMS deserves a tactile
+    // tick, since it is as likely to be glanced at from a pocket as read.
+    HapticFeedback.mediumImpact();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remaining <= 1) {
         timer.cancel();
+        HapticFeedback.heavyImpact();
         if (mounted) Navigator.of(context).pop(true);
         return;
       }
       setState(() => _remaining--);
+      HapticFeedback.lightImpact();
     });
   }
 
@@ -74,6 +81,7 @@ class _AlertCountdownDialogState extends State<AlertCountdownDialog> {
 
   void _close(bool send) {
     _timer?.cancel();
+    if (!send) HapticFeedback.selectionClick();
     Navigator.of(context).pop(send);
   }
 
@@ -100,7 +108,7 @@ class _AlertCountdownDialogState extends State<AlertCountdownDialog> {
             ),
             Text(
               '$_remaining',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 color: AppColors.danger,
